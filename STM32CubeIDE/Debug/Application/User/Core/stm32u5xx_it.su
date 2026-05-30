@@ -1,0 +1,11 @@
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:65:13:HardFault_CaptureState	16	static,ignoring_inline_asm
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:94:6:NMI_Handler	4	static
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:109:6:HardFault_Handler	8	static,ignoring_inline_asm
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:130:6:MemManage_Handler	4	static
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:145:6:BusFault_Handler	4	static
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:160:6:UsageFault_Handler	4	static
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:175:6:SVC_Handler	4	static
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:188:6:DebugMon_Handler	4	static
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:201:6:PendSV_Handler	4	static
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:214:6:SysTick_Handler	8	static
+D:/Onedrive/Inventions/Company_ideas/genos-racing/Code_Space/MX proj stm32u545cet/Core/Src/stm32u5xx_it.c:234:6:FDCAN1_IT0_IRQHandler	8	static
