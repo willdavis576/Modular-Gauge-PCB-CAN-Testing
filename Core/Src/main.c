@@ -22,6 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include <stdio.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,11 +70,53 @@ static void MX_FDCAN1_Init(void);
 /* USER CODE BEGIN PFP */
 
 static void FDCAN1_StartReception(void);
+static uint32_t FDCAN_DlcToLength(uint32_t dlc);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+int __io_putchar(int ch)
+{
+  if ((CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk) != 0U)
+  {
+    ITM_SendChar((uint32_t) ch);
+  }
+
+  return ch;
+}
+
+int _write(int file, char *ptr, int len)
+{
+  int i;
+
+  (void)file;
+
+  for (i = 0; i < len; i++)
+  {
+    __io_putchar(ptr[i]);
+  }
+
+  return len;
+}
+
+static uint32_t FDCAN_DlcToLength(uint32_t dlc)
+{
+  switch (dlc)
+  {
+    case FDCAN_DLC_BYTES_0:  return 0U;
+    case FDCAN_DLC_BYTES_1:  return 1U;
+    case FDCAN_DLC_BYTES_2:  return 2U;
+    case FDCAN_DLC_BYTES_3:  return 3U;
+    case FDCAN_DLC_BYTES_4:  return 4U;
+    case FDCAN_DLC_BYTES_5:  return 5U;
+    case FDCAN_DLC_BYTES_6:  return 6U;
+    case FDCAN_DLC_BYTES_7:  return 7U;
+    case FDCAN_DLC_BYTES_8:  return 8U;
+    default:                 return 0U;
+  }
+}
 
 static void FDCAN1_StartReception(void)
 {
@@ -154,11 +198,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   FDCAN1_StartReception();
+  printf("SWV online, waiting for CAN frames...\r\n");
 //  HAL_GPIO_TogglePin(Test_LED_GPIO_Port, Test_LED_Pin);
 ////  HAL_Delay(1000);
 //  HAL_GPIO_TogglePin(Test_LED_GPIO_Port, Test_LED_Pin);
   /* USER CODE END 2 */
-int counter = 0;
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -183,8 +228,30 @@ int counter = 0;
 
     if (fdcan1RxPending != 0U)
     {
+      uint32_t dataLength;
+      uint32_t i;
+
+      dataLength = FDCAN_DlcToLength(fdcan1RxHeader.DataLength);
+
       fdcan1RxPending = 0U;
       HAL_GPIO_TogglePin(Test_LED_GPIO_Port, Test_LED_Pin);
+
+      printf("CAN %s ID=0x%08lX LEN=%lu DATA=",
+             (fdcan1RxHeader.IdType == FDCAN_STANDARD_ID) ? "STD" : "EXT",
+             fdcan1RxHeader.Identifier,
+             dataLength);
+
+      for (i = 0U; i < dataLength; i++)
+      {
+        printf("%02X", fdcan1RxData[i]);
+
+        if ((i + 1U) < dataLength)
+        {
+          printf(" ");
+        }
+      }
+
+      printf("\r\n");
     }
   }
   /* USER CODE END 3 */
