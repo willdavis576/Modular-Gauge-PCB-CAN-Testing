@@ -535,7 +535,7 @@ int main(void)
 				 fdcan1RxHeader.Identifier,
 				 dataLength);
 
-		  for (i = 0U; i < dataLength; i++)
+		  for (i = 0U; i <= dataLength; i++)
  8000510:	2300      	movs	r3, #0
  8000512:	607b      	str	r3, [r7, #4]
  8000514:	e012      	b.n	800053c <main+0xe4>
@@ -559,14 +559,14 @@ int main(void)
 			  printf(" ");
  8000530:	2020      	movs	r0, #32
  8000532:	f004 fc59 	bl	8004de8 <putchar>
-		  for (i = 0U; i < dataLength; i++)
+		  for (i = 0U; i <= dataLength; i++)
  8000536:	687b      	ldr	r3, [r7, #4]
  8000538:	3301      	adds	r3, #1
  800053a:	607b      	str	r3, [r7, #4]
  800053c:	687a      	ldr	r2, [r7, #4]
  800053e:	683b      	ldr	r3, [r7, #0]
  8000540:	429a      	cmp	r2, r3
- 8000542:	d3e8      	bcc.n	8000516 <main+0xbe>
+ 8000542:	d9e8      	bls.n	8000516 <main+0xbe>
 			}
 		  }
 

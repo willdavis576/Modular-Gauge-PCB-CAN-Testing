@@ -243,7 +243,7 @@ int main(void)
 				 fdcan1RxHeader.Identifier,
 				 dataLength);
 
-		  for (i = 0U; i < dataLength; i++)
+		  for (i = 0U; i <= dataLength; i++)
 		  {
 			printf("%02X", fdcan1RxData[i]);
 
