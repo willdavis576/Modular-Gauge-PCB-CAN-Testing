@@ -211,6 +211,7 @@ class CANSender:
     def __init__(self):
         self.device = None
         self.report = None
+        self.output_report_len = 0
         self.tx_count = 0
 
     def connect(self) -> bool:
@@ -230,6 +231,7 @@ class CANSender:
                 self.device = None
                 return False
             self.report = reports[0]
+            self.output_report_len = self.device.hid_caps.output_report_byte_length
             # Set DLC=8 for all frames; do NOT touch speed (configure in OpenFFBoard UI)
             self._cmd(self._TYPE_WRITE, self._CMD_LEN, 8)
             return True
@@ -239,22 +241,27 @@ class CANSender:
             return False
 
     def _cmd(self, type_: int, cmd: int, data: int = 0, adr: int = 0):
-        r = self.report
-        r[hid.get_full_usage_id(0xff00, 0x01)] = type_
-        r[hid.get_full_usage_id(0xff00, 0x02)] = self._CAN_CLASS
-        r[hid.get_full_usage_id(0xff00, 0x03)] = 0
-        r[hid.get_full_usage_id(0xff00, 0x04)] = cmd
-        r[hid.get_full_usage_id(0xff00, 0x05)] = data
-        r[hid.get_full_usage_id(0xff00, 0x06)] = adr
-        r.send()
+        if self.device is None or self.report is None:
+            return
+
+        report_id = self.report.report_id
+        raw = bytearray(self.output_report_len or 25)
+        raw[0] = report_id
+        raw[1] = type_ & 0xFF
+        raw[2:4] = int(self._CAN_CLASS).to_bytes(2, byteorder='little', signed=False)
+        raw[4] = 0
+        raw[5:9] = int(cmd).to_bytes(4, byteorder='little', signed=False)
+        raw[9:17] = int(data).to_bytes(8, byteorder='little', signed=False)
+        raw[17:25] = int(adr).to_bytes(8, byteorder='little', signed=False)
+        self.device.send_output_report(raw)
 
     def send_frame(self, can_id: int, payload: bytes):
         """Transmit one CAN frame onto the bus."""
         if self.report is None:
             return
-        # Pad to 8 bytes; interpret as signed int64 (what the firmware expects)
+        # Pad to 8 bytes; HID sends the first command value as a 64-bit integer.
         padded = (bytes(payload)[:8] + b'\x00' * 8)[:8]
-        data_int = struct.unpack('<q', padded)[0]   # signed LE int64
+        data_int = int.from_bytes(padded, byteorder='little', signed=False)
         self._cmd(self._TYPE_WR_ADR, self._CMD_SEND, data_int, can_id)
         self.tx_count += 1
 
@@ -269,6 +276,7 @@ class CANSender:
                 pass
         self.device = None
         self.report = None
+        self.output_report_len = 0
 
 
 # ── Telemetry → CAN frame packers ─────────────────────────────────────────────
@@ -278,9 +286,9 @@ def frame_engine(phys: Physics) -> tuple:
     rpm      = min(max(int(phys.rpms),            0), 0xFFFF)
     speed    = min(max(int(phys.speedKmh * 10),   0), 0xFFFF)
     gear     = min(max(int(phys.gear),             0), 0xFF)   # 0=R 1=N 2=1st…
-    throttle = min(max(int(phys.gas    * 100), 0), 100)
-    brake    = min(max(int(phys.brake  * 100), 0), 100)
-    clutch   = min(max(int(phys.clutch * 100), 0), 100)
+    throttle = min(max(int(phys.gas    * 255), 0), 255)
+    brake    = min(max(int(phys.brake  * 255), 0), 255)
+    clutch   = min(max(int(phys.clutch * 255), 0), 255)
     return 0x100, struct.pack('<HHBBBB', rpm, speed, gear, throttle, brake, clutch)
 
 
@@ -328,11 +336,24 @@ def _rpm_bar(rpms: int, max_rpm: int, width: int = 20) -> str:
 
 _display_init = False
 
+
+def _frame_hex(payload: bytes) -> str:
+    return ' '.join(f'{byte:02X}' for byte in payload)
+
+
+def _frame_u64(payload: bytes) -> int:
+    return int.from_bytes(payload[:8], byteorder='little', signed=False)
+
+
 def print_telemetry(phys: Physics, gfx: Graphics, sta: Static,
-                    can_status: str, tx_count: int):
+                    can_status: str, tx_count: int,
+                    engine_frame: tuple, temps_frame: tuple, session_frame: tuple):
     global _display_init
     rpm_pct = (phys.rpms / sta.maxRpm * 100) if sta.maxRpm > 0 else 0.0
     speed_presets = {0: '125k', 1: '250k', 2: '500k', 3: '1M'}
+    engine_id, engine_payload = engine_frame
+    temps_id, temps_payload = temps_frame
+    session_id, session_payload = session_frame
 
     lines = [
         f"  Car    : {sta.carModel or '---'}  |  Track: {sta.track or '---'}",
@@ -348,11 +369,9 @@ def print_telemetry(phys: Physics, gfx: Graphics, sta: Static,
         f"  Air    : {phys.airTemp:.1f}°C   Road: {phys.roadTemp:.1f}°C",
         "  Tyre °C : FL={:.0f}  FR={:.0f}  RL={:.0f}  RR={:.0f}".format(
             *phys.tyreCoreTemperature),
-        "  0x100   : {:04X}h  0x101 : {:02X}h  0x102 : {:04X}h".format(
-            min(int(phys.rpms), 0xFFFF),
-            min(int(phys.speedKmh * 10), 0xFFFF),
-            min(int(phys.fuel * 10), 0xFFFF),
-        ),
+        f"  TX {engine_id:#05x}: {_frame_hex(engine_payload)}  |  u64={_frame_u64(engine_payload)}",
+        f"  TX {temps_id:#05x}: {_frame_hex(temps_payload)}  |  u64={_frame_u64(temps_payload)}",
+        f"  TX {session_id:#05x}: {_frame_hex(session_payload)}  |  u64={_frame_u64(session_payload)}",
     ]
 
     if _display_init:
@@ -412,16 +431,29 @@ def main():
                 continue
 
             # ── Transmit CAN frames ──
+            engine_frame = frame_engine(phys)
+            temps_frame = frame_temps(phys)
+            session_frame = frame_session(phys, gfx)
+
             if sender.is_connected():
                 try:
-                    sender.send_frame(*frame_engine(phys))
-                    sender.send_frame(*frame_temps(phys))
-                    sender.send_frame(*frame_session(phys, gfx))
+                    sender.send_frame(*engine_frame)
+                    #sender.send_frame(*temps_frame)
+                   # sender.send_frame(*session_frame)
                 except Exception:
                     sender.disconnect()
 
             # ── Update display ──
-            print_telemetry(phys, gfx, sta, can_status, sender.tx_count)
+            print_telemetry(
+                phys,
+                gfx,
+                sta,
+                can_status,
+                sender.tx_count,
+                engine_frame,
+                temps_frame,
+                session_frame,
+            )
 
             # ── Sleep remainder of interval ──
             elapsed = time.monotonic() - t0
