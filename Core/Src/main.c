@@ -199,7 +199,7 @@ int main(void)
 
   FDCAN1_StartReception();
   printf("SWV online, waiting for CAN frames...\r\n");
-//  HAL_GPIO_TogglePin(Test_LED_GPIO_Port, Test_LED_Pin);
+  //HAL_GPIO_TogglePin(Test_LED_GPIO_Port, Test_LED_Pin);
 ////  HAL_Delay(1000);
 //  HAL_GPIO_TogglePin(Test_LED_GPIO_Port, Test_LED_Pin);
   /* USER CODE END 2 */
@@ -333,7 +333,7 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.ProtocolException = DISABLE;
   hfdcan1.Init.NominalPrescaler = 16;
   hfdcan1.Init.NominalSyncJumpWidth = 4;
-  hfdcan1.Init.NominalTimeSeg1 = 15;
+  hfdcan1.Init.NominalTimeSeg1 = 5;
   hfdcan1.Init.NominalTimeSeg2 = 4;
   hfdcan1.Init.DataPrescaler = 1;
   hfdcan1.Init.DataSyncJumpWidth = 1;

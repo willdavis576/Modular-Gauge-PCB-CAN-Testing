@@ -766,9 +766,9 @@ static void MX_FDCAN1_Init(void)
  8000664:	4b13      	ldr	r3, [pc, #76]	@ (80006b4 <MX_FDCAN1_Init+0x84>)
  8000666:	2204      	movs	r2, #4
  8000668:	619a      	str	r2, [r3, #24]
-  hfdcan1.Init.NominalTimeSeg1 = 15;
+  hfdcan1.Init.NominalTimeSeg1 = 5;
  800066a:	4b12      	ldr	r3, [pc, #72]	@ (80006b4 <MX_FDCAN1_Init+0x84>)
- 800066c:	220f      	movs	r2, #15
+ 800066c:	2205      	movs	r2, #5
  800066e:	61da      	str	r2, [r3, #28]
   hfdcan1.Init.NominalTimeSeg2 = 4;
  8000670:	4b10      	ldr	r3, [pc, #64]	@ (80006b4 <MX_FDCAN1_Init+0x84>)
