@@ -236,22 +236,25 @@ int main(void)
       fdcan1RxPending = 0U;
       HAL_GPIO_TogglePin(Test_LED_GPIO_Port, Test_LED_Pin);
 
-      printf("CAN %s ID=0x%08lX LEN=%lu DATA=",
-             (fdcan1RxHeader.IdType == FDCAN_STANDARD_ID) ? "STD" : "EXT",
-             fdcan1RxHeader.Identifier,
-             dataLength);
+      if (fdcan1RxHeader.Identifier == 0x00000100) {
 
-      for (i = 0U; i < dataLength; i++)
-      {
-        printf("%02X", fdcan1RxData[i]);
+		  printf("CAN %s ID=0x%08lX LEN=%lu DATA=",
+				 (fdcan1RxHeader.IdType == FDCAN_STANDARD_ID) ? "STD" : "EXT",
+				 fdcan1RxHeader.Identifier,
+				 dataLength);
 
-        if ((i + 1U) < dataLength)
-        {
-          printf(" ");
-        }
+		  for (i = 0U; i < dataLength; i++)
+		  {
+			printf("%02X", fdcan1RxData[i]);
+
+			if ((i + 1U) < dataLength)
+			{
+			  printf(" ");
+			}
+		  }
+
+		  printf("\r\n");
       }
-
-      printf("\r\n");
     }
   }
   /* USER CODE END 3 */

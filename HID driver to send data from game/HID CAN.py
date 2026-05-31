@@ -51,7 +51,7 @@ except ImportError:
 VENDOR_ID        = 0x1209
 PRODUCT_ID       = 0xFFB0
 CAN_SPEED_PRESET = 2      # OpenFFBoard preset: 0=125k 1=250k 2=500k 3=1M
-REFRESH_HZ       = 20     # telemetry + CAN send rate
+REFRESH_HZ       = 30     # telemetry + CAN send rate
 
 # ── Assetto Corsa shared memory structs ───────────────────────────────────────
 
